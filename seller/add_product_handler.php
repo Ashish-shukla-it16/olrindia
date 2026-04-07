@@ -1,7 +1,25 @@
 <?php
-// This is a placeholder for handling the add product form data.
-// In a real application, you would add the new product to the database.
+session_start();
+require_once '../includes/db.php';
 
-echo "<h1>Product Added!</h1>";
-echo "<p>Your new product has been added successfully.</p>";
-echo "<a href='products.php'>Go back to your products</a>";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $price = $_POST['price'];
+    $user_id = $_SESSION['id']; // Get user_id from session
+
+    // Prepare and bind
+    $stmt = $conn->prepare("INSERT INTO products (user_id, name, description, price) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("isds", $user_id, $name, $description, $price);
+
+    if ($stmt->execute()) {
+        // Redirect to products page
+        header("Location: products.php");
+        exit();
+    } else {
+        echo "Error: " . $stmt->error;
+    }
+
+    $stmt->close();
+    $conn->close();
+}

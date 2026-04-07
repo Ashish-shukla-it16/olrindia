@@ -1,4 +1,11 @@
-<?php include '../includes/header.php'; ?>
+<?php
+session_start();
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
+    header('Location: ../login.php');
+    exit;
+}
+include '../includes/header.php';
+?>
 
 <h1>Delete User</h1>
 
