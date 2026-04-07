@@ -1,21 +1,14 @@
 <?php
-$products = [
-    [
-        "name" => "Canon Camera",
-        "price" => "₹500/day",
-        "image" => "https://via.placeholder.com/300"
-    ],
-    [
-        "name" => "Luxury Car",
-        "price" => "₹3000/day",
-        "image" => "https://via.placeholder.com/300"
-    ],
-    [
-        "name" => "Drill Machine",
-        "price" => "₹200/day",
-        "image" => "https://via.placeholder.com/300"
-    ]
-];
+session_start();
+require_once 'includes/db.php';
+
+// Fetch trending products (e.g., the 6 most recent)
+$stmt = $conn->prepare("SELECT id, name, price, image FROM products ORDER BY created_at DESC LIMIT 6");
+$stmt->execute();
+$result = $stmt->get_result();
+$products = $result->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -38,9 +31,27 @@ body {
 .navbar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 15px 40px;
   background: rgba(255,255,255,0.7);
   backdrop-filter: blur(10px);
+}
+
+.nav-links a {
+    margin-left: 20px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #ff385c;
+}
+
+.nav-links span {
+    margin-right: 15px;
+    font-weight: 400;
 }
 
 .logo {
@@ -143,6 +154,15 @@ body {
 <!-- Navbar -->
 <div class="navbar">
   <div class="logo">Rentall</div>
+  <div class="nav-links">
+    <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true): ?>
+        <span>Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?>!</span>
+        <a href="logout.php">Logout</a>
+    <?php else: ?>
+        <a href="login.php">Login</a>
+        <a href="register.php">Register</a>
+    <?php endif; ?>
+  </div>
 </div>
 
 <!-- Hero -->
@@ -171,11 +191,11 @@ body {
 
     <?php foreach($products as $p): ?>
       <div class="card">
-        <img src="<?php echo $p['image']; ?>">
+        <img src="<?php echo !empty($p['image']) ? htmlspecialchars($p['image']) : 'https://via.placeholder.com/300'; ?>" alt="<?php echo htmlspecialchars($p['name']); ?>">
         <div class="card-body">
-          <h3><?php echo $p['name']; ?></h3>
-          <p class="price"><?php echo $p['price']; ?></p>
-          <a href="#" class="btn">Rent Now</a>
+          <h3><?php echo htmlspecialchars($p['name']); ?></h3>
+          <p class="price">₹<?php echo htmlspecialchars(number_format($p['price'], 2)); ?>/day</p>
+          <a href="product_detail.php?id=<?php echo $p['id']; ?>" class="btn">View Details</a>
         </div>
       </div>
     <?php endforeach; ?>
